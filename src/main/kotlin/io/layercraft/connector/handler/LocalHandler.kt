@@ -7,8 +7,7 @@ import io.layercraft.translator.packets.Packet
 import io.layercraft.translator.packets.handshake.serverbound.Handshake
 import io.layercraft.translator.packets.status.serverbound.PingRequest
 import io.layercraft.translator.packets.status.serverbound.StatusRequest
-import reactor.netty.Connection
-import reactor.netty.NettyOutbound
+import reactor.netty.channel.ChannelOperations
 import kotlin.reflect.KClass
 
 object LocalHandler {
@@ -23,9 +22,8 @@ object LocalHandler {
     fun <T: Packet> getHandler(packet: T): Handler<T>? {
         return list[packet::class] as Handler<T>?
     }
-
 }
 
 interface Handler<T: Packet> {
-    fun handle(packet: T, outbound: NettyOutbound, hash: Int)
+    fun handle(packet: T, operations: ChannelOperations<*, *>)
 }
