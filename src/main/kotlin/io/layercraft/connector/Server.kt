@@ -11,6 +11,7 @@ import reactor.core.publisher.Flux
 import reactor.netty.DisposableServer
 import reactor.netty.channel.ChannelOperations
 import reactor.netty.tcp.TcpServer
+import java.util.zip.Inflater
 
 
 object Server {
@@ -33,6 +34,20 @@ object Server {
                     return@flatMap Flux.fromArray(list)
                 }
                 .doOnNext {
+
+                    if (compression[id.asLongText()] == true) {
+                        val uncompressedLength = it.mc.readVarInt()
+                        val compressed = it.readBytes(it.remaining.toInt())
+                        //zlib decompress
+                        val uncompressed = ByteArray(uncompressedLength)
+                        val inflater = Inflater()
+                        inflater.setInput(compressed)
+                        inflater.inflate(uncompressed, 0, uncompressedLength)
+                        inflater.end()
+                        it.release()
+                        //it = ByteReadPacket(uncompressed)
+                    }
+
                     val packetId = it.mc.readVarInt()
                     val packetState = status.getOrDefault(id.asLongText(), PacketState.HANDSHAKE)
                     val packet: Packet? = TranslatorAPI.decodeFromInputWithCodec(it, codec, PacketDirection.SERVERBOUND, packetState, packetId)
