@@ -1,13 +1,13 @@
-package io.layercraft.connector.handler.handlers
+package io.layercraft.connector.handler.status
 
 import io.layercraft.connector.codec
-import io.layercraft.connector.handler.Handler
+import io.layercraft.connector.handler.LocalPacketHandler
 import io.layercraft.connector.sendMcPacket
 import io.layercraft.translator.packets.status.clientbound.StatusResponse
 import io.layercraft.translator.packets.status.serverbound.StatusRequest
 import reactor.netty.channel.ChannelOperations
 
-class StatusHandler : Handler<StatusRequest> {
+object StatusHandler : LocalPacketHandler<StatusRequest> {
 
     override fun handle(packet: StatusRequest, operations: ChannelOperations<*, *>) {
 

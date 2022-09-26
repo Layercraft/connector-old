@@ -80,6 +80,6 @@ protobuf {
 
 idea {
     module {
-        sourceDirs.plusAssign(file("build/generated/source/proto/main/kotlin"))
+        sourceDirs.plusAssign(file("build/generated/source/proto/main/"))
     }
 }
