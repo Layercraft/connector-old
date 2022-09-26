@@ -1,11 +1,11 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import com.google.protobuf.gradle.*
 
 plugins {
     kotlin("jvm") version "1.7.10"
+    application
 
     id("com.google.protobuf") version "0.8.19"
-
-    application
+    id("idea")
 }
 
 group = "io.layercraft.connector"
@@ -28,17 +28,24 @@ dependencies {
 
     //implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")x
 
+    //Netty
     implementation("io.projectreactor:reactor-core:3.5.0-M6")
     implementation("io.projectreactor:reactor-tools:3.5.0-M6")
     implementation("io.projectreactor.netty:reactor-netty-core:1.1.0-M6")
 
-    implementation("io.netty:netty-resolver-dns-native-macos:4.1.82.Final:osx-aarch_64")
+    // If Platform is osx-aarch_64, use io.netty:netty-resolver-dns-native-macos:4.1.82.Final:osx-aarch_64
+    if (System.getProperty("os.name").toLowerCase().contains("mac")) {
+        implementation("io.netty:netty-resolver-dns-native-macos:4.1.82.Final:osx-aarch_64")
+    }
 
+    //Ktor
     implementation("io.ktor:ktor-io-jvm:2.1.1")
 
+    //Protobuf
     implementation("com.google.protobuf:protobuf-kotlin:3.21.6")
-    protobuf(files("universal-packets/layercraft/"))
+    protobuf(files("universal-packets/io/layercraft/"))
 
+    //Tests
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit5"))
     testImplementation("io.projectreactor:reactor-test:3.5.0-M6")
@@ -48,10 +55,31 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile> {
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = "18"
 }
 
 application {
     mainClass.set("io.layercraft.connector.ApplicationKt")
+}
+
+protobuf {
+    protoc {
+        // The artifact spec for the Protobuf Compiler
+        artifact = "com.google.protobuf:protoc:3.21.6"
+    }
+
+    generateProtoTasks {
+        all().forEach {
+            it.builtins {
+                id("kotlin")
+            }
+        }
+    }
+}
+
+idea {
+    module {
+        sourceDirs.plusAssign(file("build/generated/source/proto/main/kotlin"))
+    }
 }

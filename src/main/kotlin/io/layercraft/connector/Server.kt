@@ -2,6 +2,7 @@ package io.layercraft.connector
 
 import io.ktor.utils.io.core.*
 import io.layercraft.connector.handler.LocalHandler
+import io.layercraft.login.PlayerLoginOuterClass.PlayerLogin
 import io.layercraft.translator.TranslatorAPI
 import io.layercraft.translator.packets.Packet
 import io.layercraft.translator.packets.PacketDirection
@@ -61,6 +62,7 @@ object Server {
                 }
                 .doOnError {
                     println("Error: ${it.message}")
+                    PlayerLogin.newBuilder().username
                 }
                 .then()
         }
