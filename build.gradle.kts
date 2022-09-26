@@ -3,6 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.7.10"
 
+    id("com.google.protobuf") version "0.8.19"
+
     application
 }
 
@@ -33,6 +35,9 @@ dependencies {
     implementation("io.netty:netty-resolver-dns-native-macos:4.1.82.Final:osx-aarch_64")
 
     implementation("io.ktor:ktor-io-jvm:2.1.1")
+
+    implementation("com.google.protobuf:protobuf-kotlin:3.21.6")
+    protobuf(files("universal-packets/layercraft/"))
 
     testImplementation(kotlin("test"))
     testImplementation(kotlin("test-junit5"))

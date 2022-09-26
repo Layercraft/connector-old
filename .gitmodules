@@ -1,0 +1,3 @@
+[submodule "universal-packets"]
+	path = universal-packets
+	url = https://github.com/Layercraft/universal-packets.git
