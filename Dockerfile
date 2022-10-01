@@ -1,6 +1,9 @@
 #Build from gradle and run Java 18
 #Name: Layercraft-Connector
 FROM gradle:7.5.1-jdk18 as builder
+
+ARG USERNAME
+ARG TOKEN
 #Copy the source code to the container
 COPY . /home/gradle/src
 #Set the working directory
