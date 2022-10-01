@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   build:
+    name: Build Docker Image
     runs-on: ubuntu-latest
     env:
       VERSION: ${{ github.sha }}

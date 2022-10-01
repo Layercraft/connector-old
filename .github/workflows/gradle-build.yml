@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   distribution:
     name: Build Distribution
@@ -21,7 +24,9 @@ jobs:
           cache: 'gradle'
 
       - name: Build Gradle distribution
-        run: ./gradlew assembleDist
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: assembleDist
         env:
           USERNAME: ${{ github.repository_owner }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,6 +38,8 @@ jobs:
           path: | 
             build/distributions/*.zip
             build/distributions/*.tar
+          if-no-files-found: error
+
 
   jar:
     name: Build Jar
@@ -50,7 +57,9 @@ jobs:
           cache: 'gradle'
 
       - name: Build with Gradle
-        run: ./gradlew build
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
         env:
           USERNAME: ${{ github.repository_owner }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -60,3 +69,4 @@ jobs:
         with:
           name: Connector.jar
           path: build/libs/*.jar
+          if-no-files-found: error
