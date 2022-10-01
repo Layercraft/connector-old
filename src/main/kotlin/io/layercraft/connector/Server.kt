@@ -16,6 +16,7 @@ import java.util.zip.Inflater
 
 object Server {
 
+    @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private val tcpServer: TcpServer = TcpServer.create()
         .port(25565)
         .handle { inbound, outbound ->

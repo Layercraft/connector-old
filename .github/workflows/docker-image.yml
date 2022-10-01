@@ -30,7 +30,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker Tag rename to ghcr.io
-        run: docker tag app ghcr.io/layercraft/connector:$VERSION
+        run: docker tag app ghcr.io/layercraft/connector:$VERSION && docker tag app ghcr.io/layercraft/connector:dev-latest
 
       - name: Push the Docker image to GitHub Container Registry
-        run: docker push ghcr.io/layercraft/connector:$VERSION
+        run: docker push ghcr.io/layercraft/connector:$VERSION && docker push ghcr.io/layercraft/connector:dev-latest

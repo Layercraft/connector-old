@@ -10,9 +10,11 @@ import java.util.*
 
 object StatusHandler : LocalPacketHandler<StatusRequest> {
 
+    private val uuid: UUID = UUID.randomUUID()
+
     override fun handle(packet: StatusRequest, operations: ChannelOperations<*, *>) {
 
-        val json = "{\"version\": {\"name\": \"Layercraft Alpha\",\"protocol\": 760},\"players\": {\"max\": 100,\"online\": 0,\"sample\": []},\"description\": {\"text\": \"Hello world to Layercraft-${UUID.randomUUID()}\"},\"previewsChat\": false,\"enforcesSecureChat\": false}"
+        val json = "{\"version\": {\"name\": \"Layercraft Alpha\",\"protocol\": 760},\"players\": {\"max\": 100,\"online\": 0,\"sample\": []},\"description\": {\"text\": \"Hello world to Layercraft-$uuid\"},\"previewsChat\": false,\"enforcesSecureChat\": false}"
 
         val response = StatusResponse(json)
         operations.sendMcPacket(codec, response).then().subscribe()
