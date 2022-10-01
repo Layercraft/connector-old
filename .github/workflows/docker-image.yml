@@ -17,7 +17,7 @@ jobs:
           submodules: true
 
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag connector:$VERSION --build-arg TOKEN=$TOKEN --build-arg USERNAME=$USERNAME
+        run: docker build . --file Dockerfile --tag layercraft/connector:$VERSION --build-arg TOKEN=$TOKEN --build-arg USERNAME=$USERNAME
         env:
           USERNAME: ${{ github.repository_owner }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -30,4 +30,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push the Docker image
-        run: docker push ghcr.io/layercraft/connector:$VERSION
+        run: docker push layercraft/connector:$VERSION
