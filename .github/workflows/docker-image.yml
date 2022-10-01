@@ -7,11 +7,8 @@ on:
 permissions: write-all
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
         with:
@@ -31,4 +28,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push the Docker image
-        run: docker push ghcr.io/${{ github.repository_owner }}/connector:$(date +%s)
+        run: docker push ghcr.io/layercraft/connector:$VERSION
+        env:
+          VERSION: ${{ github.sha }}
