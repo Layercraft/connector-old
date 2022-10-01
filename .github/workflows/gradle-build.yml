@@ -1,0 +1,42 @@
+name: Gradle Build
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Set up JDK 18
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '18'
+          cache: 'gradle'
+
+      - name: Build with Gradle
+        run: ./gradlew build
+
+      - name: Upload Jar
+        uses: actions/upload-artifact@v2
+        with:
+          name: Connector.jar
+          path: build/libs/*.jar
+
+      - name: Build Gradle distribution
+        run: ./gradlew assembleDist
+
+      - name: Upload Gradle distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: gradle-distribution
+          path: | 
+            build/distributions/*.zip
+            build/distributions/*.tar
