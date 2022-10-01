@@ -14,6 +14,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          submodules: true
 
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag connector:$(date +%s) --build-arg TOKEN=$TOKEN --build-arg USERNAME=$USERNAME

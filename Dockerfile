@@ -5,10 +5,6 @@ FROM gradle:7.5.1-jdk18 as builder
 ARG USERNAME
 ARG TOKEN
 
-#Print out the username and token
-RUN echo "Username: $USERNAME"
-RUN echo "Token: $TOKEN"
-
 #Copy the source code to the container
 COPY . /home/gradle/src
 #Set the working directory
