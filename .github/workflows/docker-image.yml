@@ -9,16 +9,18 @@ permissions: write-all
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: true
 
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag connector:$(date +%s) --build-arg TOKEN=$TOKEN --build-arg USERNAME=$USERNAME
+        run: docker build . --file Dockerfile --tag connector:$VERSION --build-arg TOKEN=$TOKEN --build-arg USERNAME=$USERNAME
         env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USERNAME: ${{ github.repository_owner }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
@@ -29,5 +31,3 @@ jobs:
 
       - name: Push the Docker image
         run: docker push ghcr.io/layercraft/connector:$VERSION
-        env:
-          VERSION: ${{ github.sha }}
