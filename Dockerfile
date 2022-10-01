@@ -22,9 +22,6 @@ RUN mv /home/runtime/* /home/runtime/layercraft-connector
 RUN rm -rf /home/gradle
 WORKDIR /home/runtime
 #Run the project
-RUN ls -la /home/runtime/layercraft-connector
-
 CMD ["sh", "./layercraft-connector/bin/Connector"]
 #Expose the port
 EXPOSE 25565
-
