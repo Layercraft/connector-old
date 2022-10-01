@@ -30,4 +30,4 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push the Docker image
-        run: docker push layercraft/connector:$VERSION
+        run: docker push ghcr.io/layercraft/connector:$VERSION
