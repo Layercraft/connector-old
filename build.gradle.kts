@@ -15,7 +15,7 @@ repositories {
     mavenCentral()
     maven(url="https://repo.spring.io/milestone")
     maven {
-        url = uri("https://maven.pkg.github.com/Layercraft/repo")
+        url = uri("https://maven.pkg.github.com/Layercraft/Translator-API")
         credentials {
             username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
             password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.layercraft.connector:translator-api:0.0.8")
+    implementation("io.layercraft.connector:translator-api:0.0.9")
 
     //implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")x
 
