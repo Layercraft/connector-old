@@ -2,12 +2,11 @@ package io.layercraft.connector
 
 import io.layercraft.translator.codec.MinecraftCodec
 import io.layercraft.translator.codec.MinecraftCodecs
-import io.layercraft.translator.packets.PacketState
+import java.util.*
+
+val serverID: UUID = UUID.randomUUID()
 
 val codec: MinecraftCodec = MinecraftCodecs.V_1_19_2
-
-val status: HashMap<String, PacketState> = HashMap()
-val compression: HashMap<String, Boolean> = HashMap<String, Boolean>()
 
 fun main() {
     Server.start()

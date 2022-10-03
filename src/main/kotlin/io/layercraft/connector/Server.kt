@@ -2,6 +2,8 @@ package io.layercraft.connector
 
 import io.ktor.utils.io.core.*
 import io.layercraft.connector.handler.LocalHandler
+import io.layercraft.connector.utils.ConnectionsUtils
+import io.layercraft.connector.utils.EncryptionUtils
 import io.layercraft.translator.TranslatorAPI
 import io.layercraft.translator.packets.Packet
 import io.layercraft.translator.packets.PacketDirection
@@ -11,7 +13,7 @@ import reactor.core.publisher.Flux
 import reactor.netty.DisposableServer
 import reactor.netty.channel.ChannelOperations
 import reactor.netty.tcp.TcpServer
-import java.util.zip.Inflater
+import kotlin.system.measureTimeMillis
 
 
 object Server {
@@ -21,9 +23,18 @@ object Server {
         .port(25565)
         .handle { inbound, outbound ->
             val channelOperations = inbound as ChannelOperations<*, *>
-            val id = channelOperations.channel().id()
+            val connection = ConnectionsUtils.connection(channelOperations)
             inbound.receive()
                 .asKtorInput()
+                .map {
+                    val sharedSecret = connection.sharedSecret
+                    if (sharedSecret != null) {
+                        println("Decrypting")
+                        ByteReadPacket(EncryptionUtils.decryptBytesAES(it.readBytes(), sharedSecret))
+                    } else {
+                        it
+                    }
+                }
                 .flatMap {
                     var list: Array<Input> = emptyArray()
                     loop@ do {
@@ -36,7 +47,8 @@ object Server {
                 }
                 .doOnNext {
 
-                    if (compression[id.asLongText()] == true) {
+
+                    /*if (compression[id.asLongText()] == true) {
                         val uncompressedLength = it.mc.readVarInt()
                         val compressed = it.readBytes(it.remaining.toInt())
                         //zlib decompress
@@ -47,30 +59,48 @@ object Server {
                         inflater.end()
                         it.release()
                         //it = ByteReadPacket(uncompressed)
-                    }
+                    }*/
 
                     val packetId = it.mc.readVarInt()
-                    val packetState = status.getOrDefault(id.asLongText(), PacketState.HANDSHAKE)
+                    val packetState = connection.packetState
                     val packet: Packet? = TranslatorAPI.decodeFromInputWithCodec(it, codec, PacketDirection.SERVERBOUND, packetState, packetId)
 
-                    println("C -> S: $packet")
-                    if (status[id.asLongText()] != PacketState.PLAY) {
+                    println("C -> S: ${packet.toString().replace("\n", " ")}")
+                    if (packetState != PacketState.PLAY) {
                         if (packet != null) {
-                            LocalHandler.getHandler(packet)?.handle(packet, channelOperations)
+                            val handler = LocalHandler.getHandler(packet)
+                            if (handler != null) {
+                                val time = measureTimeMillis {
+                                    handler.handle(packet, channelOperations, connection)
+                                }
+                                println("Handler-${handler::class.simpleName} time: $time ms")
+                            } else {
+                                println("No handler for packet: $packet")
+                            }
                         }
                     }
                 }
                 .doOnError {
+                    it.printStackTrace()
                     println("Error: ${it.message}")
                 }
                 .then()
         }
 
         .doOnConnection {
-            val id = it.channel().id().asLongText()
-            status[id] = PacketState.HANDSHAKE
+            if (it is ChannelOperations<*, *>) {
+                val connection = ConnectionsUtils.connection(it)
 
-            println("Established connection with ${it.channel().remoteAddress()}")
+                //Add Listener to remove connection from ConnectionsUtils
+                it.onDispose {
+                    ConnectionsUtils.removeConnection(it.channel().id())
+                }
+
+                println("Connection established: ${it.channel().remoteAddress()} (${connection.uuid})")
+            } else {
+                println("Error: ${it.javaClass}")
+                it.channel().close()
+            }
         }
         .doOnBound {
             println("Server started on port ${it.port()}")

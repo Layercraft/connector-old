@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.layercraft.connector:translator-api:0.0.9")
+    implementation("io.layercraft.connector:translator-api:0.0.12")
 
     //implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")x
 
@@ -40,10 +40,17 @@ dependencies {
 
     //Ktor
     implementation("io.ktor:ktor-io-jvm:2.1.1")
+    //implementation("io.ktor:ktor-client-core:2.1.1")
 
     //Protobuf
     implementation("com.google.protobuf:protobuf-kotlin:3.21.6")
     protobuf(files("universal-packets/io/layercraft/"))
+
+    //RabbitMQ
+    implementation("io.projectreactor.rabbitmq:reactor-rabbitmq:1.5.5")
+
+    //Google
+    implementation("com.google.code.gson:gson:2.9.1")
 
     //Tests
     testImplementation(kotlin("test"))

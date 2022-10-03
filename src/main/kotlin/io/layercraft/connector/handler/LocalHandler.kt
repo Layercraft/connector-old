@@ -1,11 +1,14 @@
 package io.layercraft.connector.handler
 
 import io.layercraft.connector.handler.handshake.HandshakeHandler
+import io.layercraft.connector.handler.login.EncryptionResponseHandler
 import io.layercraft.connector.handler.login.LoginStartHandler
 import io.layercraft.connector.handler.status.PingHandler
 import io.layercraft.connector.handler.status.StatusHandler
+import io.layercraft.connector.utils.Connection
 import io.layercraft.translator.packets.Packet
 import io.layercraft.translator.packets.handshake.serverbound.Handshake
+import io.layercraft.translator.packets.login.serverbound.EncryptionResponse
 import io.layercraft.translator.packets.login.serverbound.LoginStart
 import io.layercraft.translator.packets.status.serverbound.PingRequest
 import io.layercraft.translator.packets.status.serverbound.StatusRequest
@@ -19,7 +22,8 @@ object LocalHandler {
         Handshake::class to HandshakeHandler,
         StatusRequest::class to StatusHandler,
         PingRequest::class to PingHandler,
-        LoginStart::class to LoginStartHandler
+        LoginStart::class to LoginStartHandler,
+        EncryptionResponse::class to EncryptionResponseHandler
     )
 
     fun <T: Packet> getHandler(packet: T): LocalPacketHandler<T>? {
@@ -28,5 +32,5 @@ object LocalHandler {
 }
 
 interface LocalPacketHandler<T: Packet> {
-    fun handle(packet: T, operations: ChannelOperations<*, *>)
+    fun handle(packet: T, operations: ChannelOperations<*, *>, connection: Connection)
 }
