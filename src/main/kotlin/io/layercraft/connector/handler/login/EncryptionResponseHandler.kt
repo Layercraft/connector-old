@@ -50,6 +50,7 @@ object EncryptionResponseHandler : LocalPacketHandler<EncryptionResponse> {
 
         val list = ArrayList<LoginProperty>()
         jsonResponse.properties.forEach{
+            println("Property: $it")
             list.add(LoginProperty(it.name, it.value, true, it.signature))
         }
 
