@@ -34,11 +34,9 @@ dependencies {
     implementation("io.projectreactor.netty:reactor-netty-core:1.1.0-M6")
 
     // If Platform is osx-aarch_64, use io.netty:netty-resolver-dns-native-macos:4.1.82.Final:osx-aarch_64
-    if (System.getProperty("os.name").toLowerCase().contains("mac")) {
-        implementation("io.netty:netty-resolver-dns-native-macos:4.1.82.Final:osx-aarch_64")
-    }
+    implementation("io.netty:netty-resolver-dns-native-macos:4.1.82.Final:osx-aarch_64")
 
-    //Ktor
+    //Ktor-IO
     implementation("io.ktor:ktor-io-jvm:2.1.1")
     //implementation("io.ktor:ktor-client-core:2.1.1")
 
