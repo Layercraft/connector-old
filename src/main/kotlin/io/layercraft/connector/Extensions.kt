@@ -1,53 +1,47 @@
 package io.layercraft.connector
 
-import io.ktor.utils.io.core.*
-import io.ktor.utils.io.streams.*
 import io.layercraft.connector.utils.ConnectionsUtils
 import io.layercraft.connector.utils.EncryptionUtils
-import io.layercraft.translator.TranslatorAPI
-import io.layercraft.translator.codec.MinecraftCodec
-import io.layercraft.translator.packets.Packet
-import io.layercraft.translator.utils.mc
-import reactor.core.publisher.Flux
+import io.layercraft.packetlib.TranslatorAPI
+import io.layercraft.packetlib.codec.MinecraftCodec
+import io.layercraft.packetlib.packets.Packet
+import io.layercraft.packetlib.utils.stream.MinecraftOutputStreamSerialize
+import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono
-import reactor.netty.ByteBufFlux
-import reactor.netty.NettyOutbound
-import reactor.netty.channel.ChannelOperations
+import reactor.netty5.NettyOutbound
+import reactor.netty5.channel.ChannelOperations
+import java.io.ByteArrayOutputStream
+import java.io.DataOutputStream
 
-internal fun ByteBufFlux.asKtorInput(): Flux<Input> {
-    return this.asInputStream().map { ByteReadPacket(it.asInput().readBytes()) }
-}
+private val logger = LoggerFactory.getLogger(Server::class.java)
 
 fun ChannelOperations<*, *>.sendMcPacket(codec: MinecraftCodec, packet: Packet): NettyOutbound = this.sendMcPacketReactive(codec, Mono.just(packet))
 
-fun ChannelOperations<*, *>.sendMcPacketReactive(codec: MinecraftCodec, packet: Mono<Packet>): NettyOutbound {
-    val packetPublish = packet
-        .doOnNext {
-            println("S -> C: ${it.toString().replace("\n", " ")}")
+fun ChannelOperations<*, *>.sendMcPacketReactive(codec: MinecraftCodec, packet: Mono<Packet>): NettyOutbound =
+    this.sendByteArray(
+        packet
+        .map {
+            val byteStream = ByteArrayOutputStream()
+            val dataStream = DataOutputStream(byteStream)
+            val serializer = MinecraftOutputStreamSerialize(dataStream)
+            logger.info("S -> C: ${it.toString().replace("\n", " ")}")
+            codec.getCodecPacketFromPacket(it)?.let { codecPacket -> serializer.writeVarInt(codecPacket.packetId) }
+            TranslatorAPI.encodeToOutputWithCodec(codec, serializer, it)
+            return@map byteStream.toByteArray()
         }
         .map {
-            val packetWrite = BytePacketBuilder()
-            codec.getCodecPacketFromPacket(it)?.let { codecPacket -> packetWrite.mc.writeVarInt(codecPacket.packetId) }
-            TranslatorAPI.encodeToOutputWithCodec(it, codec, packetWrite)
-            packetWrite.build().readBytes()
-        }
-        .map {
-            val packetBuilder = BytePacketBuilder()
-            packetBuilder.mc.writeVarInt(it.size)
-            packetBuilder.writeFully(it)
-            packetBuilder.build().readBytes()
-        }
-        .map {
+            val byteStream = ByteArrayOutputStream()
+            val dataStream = DataOutputStream(byteStream)
+            val serializer = MinecraftOutputStreamSerialize(dataStream)
+            serializer.writeVarInt(it.size)
+            serializer.writeBytes(it)
+            val bytes = byteStream.toByteArray()
+
             val sharedSecret = ConnectionsUtils.connection(this).sharedSecret
 
             if (sharedSecret != null) {
-                println("Not null")
-                EncryptionUtils.encryptBytesAES(it, sharedSecret)
+                EncryptionUtils.encryptBytesAES(bytes, sharedSecret)
             } else {
-                it
+                bytes
             }
-        }
-
-    return this.sendByteArray(packetPublish)
-}
-
+        })

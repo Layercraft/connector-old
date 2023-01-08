@@ -1,21 +1,26 @@
 package io.layercraft.connector.handler.status
 
-import io.layercraft.connector.codec
+import io.layercraft.connector.CODEC
+import io.layercraft.connector.SERVERID
+import io.layercraft.connector.VERSION
 import io.layercraft.connector.handler.LocalPacketHandler
 import io.layercraft.connector.sendMcPacket
-import io.layercraft.connector.serverID
 import io.layercraft.connector.utils.Connection
-import io.layercraft.translator.packets.status.clientbound.StatusResponse
-import io.layercraft.translator.packets.status.serverbound.StatusRequest
-import reactor.netty.channel.ChannelOperations
+import io.layercraft.packetlib.packets.v1_19_2.status.clientbound.ServerInfoPacket
+import io.layercraft.packetlib.packets.v1_19_2.status.serverbound.PingStartPacket
+import reactor.netty5.channel.ChannelOperations
 
-object StatusHandler : LocalPacketHandler<StatusRequest> {
+object StatusHandler : LocalPacketHandler<PingStartPacket> {
 
-    override fun handle(packet: StatusRequest, operations: ChannelOperations<*, *>, connection: Connection) {
+    override fun handle(packet: PingStartPacket, operations: ChannelOperations<*, *>, connection: Connection) {
 
-        val json = "{\"version\": {\"name\": \"Layercraft Alpha\",\"protocol\": 760},\"players\": {\"max\": 100,\"online\": 0,\"sample\": []},\"description\": {\"text\": \"Connector:\n$serverID\"},\"previewsChat\": false,\"enforcesSecureChat\": false}"
+        val json = """
+            {"version":{"name":"Layercraft-$VERSION","protocol":${CODEC.protocolVersion.protocolNumber}},"players":{"max":100,"online":0},"description":{"text":"Connector: $SERVERID"},"previewsChat":false,"enforcesSecureChat":false}
+        """.trimIndent().trim()
 
-        val response = StatusResponse(json)
-        operations.sendMcPacket(codec, response).then().subscribe()
+        val response = ServerInfoPacket(json)
+        operations.sendMcPacket(CODEC, response).then().subscribe()
     }
 }
+
+

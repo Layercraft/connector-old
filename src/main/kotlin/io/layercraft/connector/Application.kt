@@ -1,13 +1,25 @@
 package io.layercraft.connector
 
-import io.layercraft.translator.codec.MinecraftCodec
-import io.layercraft.translator.codec.MinecraftCodecs
-import java.util.*
+import io.layercraft.packetlib.codec.MinecraftCodec
+import io.layercraft.packetlib.codec.MinecraftCodecs
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
+import java.util.UUID
 
-val serverID: UUID = UUID.randomUUID()
+val SERVERID: UUID = UUID.randomUUID()
+val CODEC: MinecraftCodec = MinecraftCodecs.V1_19_2
+const val VERSION: String = "0.0.1"
 
-val codec: MinecraftCodec = MinecraftCodecs.V_1_19_2
+val koinModule = module {
+    single { Server() }
+}
 
 fun main() {
-    Server.start()
+    val koin = startKoin {
+        modules(koinModule)
+    }
+
+    val server = koin.koin.get<Server>()
+    server.start()
+    server.block()
 }

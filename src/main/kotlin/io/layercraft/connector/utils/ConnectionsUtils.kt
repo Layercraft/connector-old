@@ -1,22 +1,14 @@
 package io.layercraft.connector.utils
 
-import io.layercraft.translator.packets.PacketState
-import io.netty.channel.ChannelId
-import reactor.netty.channel.ChannelOperations
-import java.util.*
+import io.layercraft.packetlib.packets.PacketState
+import io.netty5.channel.ChannelId
+import reactor.netty5.channel.ChannelOperations
+import java.util.UUID
 
 object ConnectionsUtils {
 
     private val connectionUUIDS = HashMap<String, UUID>()
-
-    internal val connections = HashMap<UUID, Connection>()
-
-    /*    internal val packetState = HashMap<UUID, PacketState>()
-        internal val verifyToken = HashMap<UUID, ByteArray>()
-        internal val sharedSecret = HashMap<UUID, ByteArray>()
-        internal val username = HashMap<UUID, String>()
-        internal val uuids = HashMap<UUID, UUID>()
-        internal val ips = HashMap<UUID, String>()*/
+    private val connections = HashMap<UUID, Connection>()
 
     fun connectionId(channelId: ChannelId): UUID {
         return connectionUUIDS.getOrPut(channelId.asLongText()) { UUID.randomUUID() }
@@ -48,7 +40,7 @@ object ConnectionsUtils {
 data class Connection(
     val uuid: UUID,
     val operations: ChannelOperations<*, *>,
-    var packetState: PacketState = PacketState.HANDSHAKE,
+    var packetState: PacketState = PacketState.HANDSHAKING,
     val verifyToken: ByteArray = EncryptionUtils.generateVerifyToken(),
     var sharedSecret: ByteArray? = null,
     var username: String? = null,
