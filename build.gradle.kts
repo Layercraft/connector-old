@@ -1,17 +1,8 @@
-/*import com.google.protobuf.gradle.builtins
-import com.google.protobuf.gradle.generateProtoTasks
-import com.google.protobuf.gradle.id
-import com.google.protobuf.gradle.protobuf
-import com.google.protobuf.gradle.protoc*/
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.8.0"
-
     application
-
-    // id("com.google.protobuf") version "0.8.19"
-    id("idea")
 }
 
 group = "io.layercraft.connector"
@@ -79,26 +70,3 @@ tasks.withType<KotlinCompile> {
 application {
     mainClass.set("io.layercraft.connector.ApplicationKt")
 }
-/*
-
-protobuf {
-    protoc {
-        // The artifact spec for the Protobuf Compiler
-        artifact = "com.google.protobuf:protoc:3.21.6"
-    }
-
-    generateProtoTasks {
-        all().forEach {
-            it.builtins {
-                id("kotlin")
-            }
-        }
-    }
-}
-
-idea {
-    module {
-        sourceDirs.plusAssign(file("build/generated/source/proto/main/"))
-    }
-}
-*/
