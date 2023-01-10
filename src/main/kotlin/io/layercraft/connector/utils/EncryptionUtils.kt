@@ -1,6 +1,6 @@
 package io.layercraft.connector.utils
 
-import io.layercraft.connector.SERVERID
+import io.layercraft.connector.SERVER_ID
 import java.math.BigInteger
 import java.security.Key
 import java.security.KeyFactory
@@ -70,7 +70,7 @@ class EncryptionUtils {
 
     fun digestData(secretKey: SecretKey): ByteArray {
         val messageDigest = MessageDigest.getInstance(HASH_ALGORITHM)
-        messageDigest.update(SERVERID.toByteArray(charset(BYTE_ENCODING)))
+        messageDigest.update(SERVER_ID.toByteArray(charset(BYTE_ENCODING)))
         messageDigest.update(secretKey.encoded)
         messageDigest.update(publicKey.encoded)
 

@@ -46,10 +46,6 @@ dependencies {
     // Google
     implementation("com.google.code.gson:gson:2.10")
 
-    /*    //Protobuf
-        implementation("com.google.protobuf:protobuf-kotlin:3.21.7")
-        protobuf(files("universal-packets/io/layercraft/"))*/
-
     // RabbitMQ
     implementation("io.projectreactor.rabbitmq:reactor-rabbitmq:1.5.5")
 

@@ -1,7 +1,7 @@
 package io.layercraft.connector.handler.login
 
 import io.layercraft.connector.CODEC
-import io.layercraft.connector.SERVERID
+import io.layercraft.connector.SERVER_ID
 import io.layercraft.connector.handler.LocalPacketHandler
 import io.layercraft.connector.sendMcPacket
 import io.layercraft.connector.utils.Connection
@@ -20,7 +20,7 @@ object LoginStartHandler : LocalPacketHandler<LoginStartPacket> {
         if (packet.hasPlayerUUID) connection.mcUUID = packet.playerUUID!!
 
         val response = EncryptionBeginPacket(
-            SERVERID,
+            SERVER_ID,
             encryptionUtils.publicKey.encoded,
             connection.verifyToken,
         )

@@ -7,11 +7,11 @@ import org.koin.core.context.startKoin
 import org.koin.dsl.module
 import java.util.UUID
 
-val SERVERUUID: UUID = UUID.randomUUID()
-val SERVERID = SERVERUUID.toString().replace("-", "").substring(0, 20)
+val SERVER_UUID: UUID = UUID.randomUUID()
+val SERVER_ID = SERVER_UUID.toString().replace("-", "").substring(0, 20)
 val CODEC: MinecraftCodec = MinecraftCodecs.V1_19_3
 const val VERSION: String = "0.0.1"
-const val MAXPACKETSIZE: Int = 209715 // 3 bytes varint 2097151
+const val MAX_PACKET_SIZE: Int = 2097151 // 3 bytes varint 2097151
 
 val koinModule = module {
     single { Server() }
