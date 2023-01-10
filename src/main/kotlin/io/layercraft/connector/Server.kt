@@ -122,7 +122,7 @@ class Server {
                         val time = measureTimeMillis {
                             handler.handle(packet, channelOperations, connection)
                         }
-                        logger.debug("Handled ${packet.javaClass.simpleName} in $time ms")
+                        logger.debug("Handled ${handler.javaClass.simpleName} in $time ms")
                     } else {
                         logger.debug("No handler for ${packet.javaClass.simpleName}")
                     }

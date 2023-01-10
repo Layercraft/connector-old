@@ -24,7 +24,7 @@ fun ChannelOperations<*, *>.sendMcPacketReactive(codec: MinecraftCodec, packet: 
     return this.sendByteArray(
         packet
             .map {
-                val buffer = ByteBuffer.allocate(MAXPACKETSIZE)
+                val buffer: ByteBuffer = ByteBuffer.allocate(MAXPACKETSIZE)
                 val serializer = MinecraftByteBufferSerialize(buffer)
                 logger.info("S -> C: ${it.toString().replace("\n", " ")}")
                 val codecPacket = codec.getCodecPacketFromPacket(it)!!
@@ -38,7 +38,7 @@ fun ChannelOperations<*, *>.sendMcPacketReactive(codec: MinecraftCodec, packet: 
                 serializer.writeVarInt(content.size)
                 serializer.writeBytes(content)
 
-                buffer.position(0)
+                buffer.flip()
 
                 val cipherContext = ConnectionsUtils.connection(this).cipherContext
                 cipherContext?.encrypt?.update(buffer, buffer.duplicate())

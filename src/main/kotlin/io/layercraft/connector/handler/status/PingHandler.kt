@@ -11,7 +11,6 @@ object PingHandler : LocalPacketHandler<PingPacket> {
     override fun handle(packet: PingPacket, operations: ChannelOperations<*, *>, connection: Connection) {
         val response = io.layercraft.packetlib.packets.v1_19_3.status.clientbound.PingPacket(packet.time)
         operations.sendMcPacket(CODEC, response).then().subscribe()
-        Thread.sleep(1000)
         operations.channel().close()
     }
 }
