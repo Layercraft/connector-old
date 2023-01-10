@@ -2,7 +2,6 @@ package io.layercraft.connector
 
 import io.layercraft.connector.handler.LocalHandler
 import io.layercraft.connector.utils.ConnectionsUtils
-import io.layercraft.connector.utils.EncryptionUtils
 import io.layercraft.packetlib.TranslatorAPI
 import io.layercraft.packetlib.packets.Packet
 import io.layercraft.packetlib.packets.PacketDirection
@@ -20,12 +19,10 @@ import reactor.netty5.tcp.TcpServer
 import java.nio.ByteBuffer
 import kotlin.system.measureTimeMillis
 
-
 class Server {
 
     private val logger = LoggerFactory.getLogger(Server::class.java)
     private lateinit var disposableServer: DisposableServer
-
 
     @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private val tcpServer: TcpServer = TcpServer.create()
@@ -35,7 +32,7 @@ class Server {
             if (it is ChannelOperations<*, *>) {
                 val connection = ConnectionsUtils.connection(it)
 
-                //Add Listener to remove connection from ConnectionsUtils
+                // Add Listener to remove connection from ConnectionsUtils
                 it.onDispose {
                     logger.info("Connection closed: ${it.channel().remoteAddress()} (${connection.uuid})")
                     ConnectionsUtils.removeConnection(it.channel().id())
@@ -54,15 +51,12 @@ class Server {
             logger.info("Server stopped")
         }
 
-
-
     fun start() {
-        println("Starting server...")
         tcpServer.warmup().block()
 
         disposableServer = tcpServer.bindNow()
 
-        //disposableServer.onDispose().block()
+        // disposableServer.onDispose().block()
     }
 
     fun block() {
@@ -76,20 +70,21 @@ class Server {
             .asByteBuffer()
             .log()
             .map {
-                val sharedSecret = connection.sharedSecret
-                if (sharedSecret != null) {
-                    logger.debug("Decrypting packet")
-                    ByteBuffer.wrap(EncryptionUtils.decryptBytesAES(it.array(), sharedSecret))
-                } else {
-                    it
+                val cipherContext = connection.cipherContext
+
+                if (cipherContext != null) {
+                    cipherContext.decrypt.update(it, it.duplicate())
+                    println("Running cipher")
                 }
+
+                it
             }
             .flatMap {
                 var list: Array<ByteBuffer> = emptyArray()
                 loop@ do {
                     if (!it.hasRemaining()) break@loop
                     val packetLength = readVarIntFromByteBuffer(it)
-                    if (packetLength > it.remaining()) return@flatMap Flux.error(Exception("Packet length is greater than remaining bytes"))
+                    if (packetLength > it.remaining()) return@flatMap Flux.error(Exception("Packet length is greater than remaining bytes $packetLength > ${it.remaining()}"))
                     val bytebuffer = ByteBuffer.allocate(packetLength)
                     it.get(bytebuffer.array(), 0, packetLength)
                     list += bytebuffer

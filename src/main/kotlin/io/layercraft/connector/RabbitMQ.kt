@@ -2,9 +2,8 @@ package io.layercraft.connector
 
 import com.rabbitmq.client.ConnectionFactory
 
-
 class RabbitMQ {
-    //@Bean
+    // @Bean
     fun connect() {
         println("Connecting to RabbitMQ")
         val factory = ConnectionFactory()
@@ -13,6 +12,5 @@ class RabbitMQ {
         val channel = connection.createChannel()
 
         channel.queueDeclare("hello", false, false, false, null)
-
     }
 }

@@ -7,18 +7,15 @@ import io.layercraft.connector.handler.status.PingHandler
 import io.layercraft.connector.handler.status.StatusHandler
 import io.layercraft.connector.utils.Connection
 import io.layercraft.packetlib.packets.Packet
-import io.layercraft.packetlib.packets.v1_19_2.handshaking.serverbound.SetProtocolPacket
-import io.layercraft.packetlib.packets.v1_19_2.login.serverbound.EncryptionBeginPacket
-import io.layercraft.packetlib.packets.v1_19_2.login.serverbound.LoginStartPacket
-import io.layercraft.packetlib.packets.v1_19_2.status.serverbound.PingPacket
-import io.layercraft.packetlib.packets.v1_19_2.status.serverbound.PingStartPacket
-import org.slf4j.LoggerFactory
+import io.layercraft.packetlib.packets.v1_19_3.handshaking.serverbound.SetProtocolPacket
+import io.layercraft.packetlib.packets.v1_19_3.login.serverbound.EncryptionBeginPacket
+import io.layercraft.packetlib.packets.v1_19_3.login.serverbound.LoginStartPacket
+import io.layercraft.packetlib.packets.v1_19_3.status.serverbound.PingPacket
+import io.layercraft.packetlib.packets.v1_19_3.status.serverbound.PingStartPacket
 import reactor.netty5.channel.ChannelOperations
 import kotlin.reflect.KClass
 
 object LocalHandler {
-
-    val logger = LoggerFactory.getLogger(LocalHandler::class.java)
 
     // HANDSHAKE, LOGIN and STATUS are handled locally from the connector
 
@@ -27,10 +24,10 @@ object LocalHandler {
         PingStartPacket::class to StatusHandler,
         PingPacket::class to PingHandler,
         LoginStartPacket::class to LoginStartHandler,
-        EncryptionBeginPacket::class to EncryptionResponseHandler
+        EncryptionBeginPacket::class to EncryptionResponseHandler,
     )
 
-    fun <T: Packet> getHandler(packet: T): LocalPacketHandler<T>? {
+    fun <T : Packet> getHandler(packet: T): LocalPacketHandler<T>? {
         if (list.containsKey(packet::class)) {
             @Suppress("UNCHECKED_CAST")
             return list[packet::class] as LocalPacketHandler<T>?
@@ -39,6 +36,6 @@ object LocalHandler {
     }
 }
 
-interface LocalPacketHandler<T: Packet> {
+interface LocalPacketHandler<T : Packet> {
     fun handle(packet: T, operations: ChannelOperations<*, *>, connection: Connection)
 }

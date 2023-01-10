@@ -2,69 +2,94 @@ package io.layercraft.connector.utils
 
 import io.layercraft.connector.SERVERID
 import java.math.BigInteger
+import java.security.Key
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.MessageDigest
 import java.security.PublicKey
+import java.security.Signature
+import java.security.interfaces.RSAPrivateKey
+import java.security.interfaces.RSAPublicKey
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-object EncryptionUtils {
-    private val keyPair: KeyPair = KeyPairGenerator.getInstance("RSA").apply { initialize(1024) }.genKeyPair()
+private const val SYMMETRIC_ALGORITHM = "AES"
+private const val SYMMETRIC_BITS = 128
+private const val ASYMMETRIC_ALGORITHM = "RSA"
+private const val ASYMMETRIC_BITS = 1024
+private const val BYTE_ENCODING = "ISO_8859_1"
+private const val HASH_ALGORITHM = "SHA-1"
+private const val SIGNING_ALGORITHM = "SHA256withRSA"
 
-    val publickey: ByteArray = keyPair.public.encoded
-    val privatkey: ByteArray = keyPair.private.encoded
+class EncryptionUtils {
 
+    private val keyPair: KeyPair = KeyPairGenerator.getInstance("RSA").apply { initialize(ASYMMETRIC_BITS) }.generateKeyPair()
+
+    val publicKey: RSAPublicKey = keyPair.public as RSAPublicKey
+    private val privateKey: RSAPrivateKey = keyPair.private as RSAPrivateKey
     fun generateVerifyToken(): ByteArray = ByteArray(4).apply { (0..3).forEach { this[it] = (0..255).random().toByte() } }
-    //fun generateSharedSecret(bytes: ByteArray): ByteArray = encryptBytes(bytes, keyPair.public)
 
-    fun decryptBytesRSA(bytes: ByteArray): ByteArray {
-        val cipher = Cipher.getInstance("RSA")
+    fun decryptBytesRSA(data: ByteArray): ByteArray {
+        val cipher = Cipher.getInstance(ASYMMETRIC_ALGORITHM)
         cipher.init(Cipher.DECRYPT_MODE, keyPair.private)
-        return cipher.doFinal(bytes)
+        return cipher.doFinal(data)
     }
 
-    fun encryptBytesRSA(bytes: ByteArray, key: PublicKey): ByteArray {
-        val cipher = Cipher.getInstance("RSA")
-        cipher.init(Cipher.ENCRYPT_MODE, key)
-        return cipher.doFinal(bytes)
+    fun decryptBytesAES(bytes: ByteArray, sharedSecret: SecretKey): ByteArray {
+        val cipher = getCipher(Cipher.DECRYPT_MODE, sharedSecret)
+        return cipher.update(bytes)
     }
 
-    fun decryptBytesAES(bytes: ByteArray, sharedSecret: ByteArray): ByteArray {
-        val cipher = Cipher.getInstance("AES")
-        cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(sharedSecret, "AES"))
-        return cipher.doFinal(bytes)
+    fun encryptBytesAES(bytes: ByteArray, sharedSecret: SecretKey): ByteArray {
+        val cipher = getCipher(Cipher.ENCRYPT_MODE, sharedSecret)
+        return cipher.update(bytes)
     }
 
-    fun encryptBytesAES(bytes: ByteArray, sharedSecret: ByteArray): ByteArray {
-        val cipher = Cipher.getInstance("AES")
-        cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(sharedSecret, "AES"))
-        return cipher.doFinal(bytes)
+    private fun getCipher(n: Int, sharedSecret: SecretKey): Cipher {
+        val cipher = Cipher.getInstance("AES/CFB8/NoPadding")
+        cipher.init(n, sharedSecret, IvParameterSpec(sharedSecret.encoded))
+        return cipher
     }
 
-    fun byteArrayToPublicKey(key: ByteArray, signature: ByteArray): PublicKey {
+    fun byteArrayToPublicKey(key: ByteArray): PublicKey {
         val keySpec = X509EncodedKeySpec(key)
-        val keyFactory = KeyFactory.getInstance("RSA")
-        val publicKey = keyFactory.generatePublic(keySpec)
-
-        /*val signatureInstance = Signature.getInstance("SHA256withRSA")
-        signatureInstance.initVerify(publicKey)
-        signatureInstance.update(key)
-        if (!signatureInstance.verify(signature)) {
-            throw Exception("Invalid signature")
-        }*/
-
-        return publicKey
+        val keyFactory = KeyFactory.getInstance(ASYMMETRIC_ALGORITHM)
+        return keyFactory.generatePublic(keySpec)
     }
 
-    fun genSha1Hash(sharedSecret: ByteArray): String {
-        val digest = MessageDigest.getInstance("SHA-1")
-        digest.update(String(SERVERID.toString().toByteArray(Charsets.US_ASCII), Charsets.US_ASCII).substring(0, 20).toByteArray())
-        digest.update(sharedSecret)
-        digest.update(publickey)
-        //digest to hexdigest
-        return BigInteger(digest.digest()).toString(16)
+    fun verifyWithSignature(publicKey: PublicKey, signature: ByteArray, vararg data: ByteArray): Boolean {
+        val signatureInstance = Signature.getInstance(SIGNING_ALGORITHM)
+        signatureInstance.initVerify(publicKey)
+        data.forEach { signatureInstance.update(it) }
+        return signatureInstance.verify(signature)
+    }
+
+    fun digestData(secretKey: SecretKey): ByteArray {
+        val messageDigest = MessageDigest.getInstance(HASH_ALGORITHM)
+        messageDigest.update(SERVERID.toByteArray(charset(BYTE_ENCODING)))
+        messageDigest.update(secretKey.encoded)
+        messageDigest.update(publicKey.encoded)
+
+        return messageDigest.digest()
+    }
+
+    // Shared Secret EncryptionBeginPacket
+    fun decryptByteToSecretKey(bytes: ByteArray): SecretKey {
+        val decryptedBytes = decryptBytesRSA(bytes)
+        return SecretKeySpec(decryptedBytes, SYMMETRIC_ALGORITHM)
+    }
+
+    fun genSha1Hash(sharedSecret: SecretKey): String {
+        return BigInteger(digestData(sharedSecret)).toString(16)
+    }
+
+    fun getCipher(n: Int, key: Key): Cipher {
+        val cipher = Cipher.getInstance("AES/CFB8/NoPadding")
+        cipher.init(n, key, IvParameterSpec(key.encoded))
+        return cipher
     }
 }

@@ -2,8 +2,11 @@ package io.layercraft.connector.utils
 
 import io.layercraft.packetlib.packets.PacketState
 import io.netty5.channel.ChannelId
+import org.koin.java.KoinJavaComponent
 import reactor.netty5.channel.ChannelOperations
 import java.util.UUID
+import javax.crypto.Cipher
+import javax.crypto.SecretKey
 
 object ConnectionsUtils {
 
@@ -26,7 +29,7 @@ object ConnectionsUtils {
         return connections.getOrPut(connectionId(operations.channel().id())) {
             Connection(
                 connectionId(operations.channel().id()),
-                operations
+                operations,
             )
         }
     }
@@ -37,13 +40,21 @@ object ConnectionsUtils {
     }
 }
 
+private val encryptionUtils: EncryptionUtils by KoinJavaComponent.inject(EncryptionUtils::class.java)
+
 data class Connection(
     val uuid: UUID,
     val operations: ChannelOperations<*, *>,
     var packetState: PacketState = PacketState.HANDSHAKING,
-    val verifyToken: ByteArray = EncryptionUtils.generateVerifyToken(),
-    var sharedSecret: ByteArray? = null,
+    val verifyToken: ByteArray = encryptionUtils.generateVerifyToken(),
+    var sharedSecret: SecretKey? = null,
     var username: String? = null,
     var mcUUID: UUID? = null,
-    var host: String? = null
+    var host: String? = null,
+    var cipherContext: CipherContext? = null,
+)
+
+data class CipherContext(
+    val decrypt: Cipher,
+    val encrypt: Cipher,
 )
