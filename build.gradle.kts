@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.layercraft:packetlib:0.0.36")
+    api("com.github.layercraft:packetlib:0.0.36")
 
     // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
